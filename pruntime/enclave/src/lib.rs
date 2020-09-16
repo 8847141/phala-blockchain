@@ -110,6 +110,7 @@ struct LocalState {
     blocknum: u32,
     ecdh_private_key: Option<EcdhKey>,
     ecdh_public_key: Option<ring::agreement::PublicKey>,
+    machine_id: [u8; 16],
 }
 
 #[derive(Encode, Decode)]
@@ -173,6 +174,7 @@ lazy_static! {
                 blocknum: 0,
                 ecdh_private_key: None,
                 ecdh_public_key: None,
+                machine_id: [0; 16]
             }
         )
     };
@@ -888,6 +890,7 @@ fn init_runtime(input: InitRuntimeReq) -> Result<Value, Value> {
     *local_state.private_key = sk.clone();
     local_state.ecdh_private_key = Some(ecdh_sk);
     local_state.ecdh_public_key = Some(ecdh_pk);
+    local_state.machine_id = machine_id.clone();
 
     // Build RuntimeInfo
     let runtime_info = RuntimeInfo {
@@ -1308,12 +1311,14 @@ fn get_info(_input: &Map<String, Value>) -> Result<Value, Value> {
         None => "".to_string()
     };
     let blocknum = local_state.blocknum;
+    let machine_id = local_state.machine_id;
 
     Ok(json!({
         "initialized": initialized,
         "public_key": s_pk,
         "ecdh_public_key": s_ecdh_pk,
-        "blocknum": blocknum
+        "blocknum": blocknum,
+        "machine_id": machine_id,
     }))
 }
 
